@@ -1,4 +1,5 @@
 import tkinter as tk
+import sqlite3
 from pieces import Piece
 
 class Tablero(tk.Tk):
@@ -106,3 +107,28 @@ class Tablero(tk.Tk):
                 self.tablero.delete(ficha[0])
                 self.fichas.remove(ficha)
                 break  # Solo se puede capturar una ficha a la vez en un turno
+            
+    def registrar_jugador(self, nombre):
+        conexion = sqlite3.connect('dama_game.db')
+        cursor = conexion.cursor()
+
+        cursor.execute('''
+            INSERT INTO jugadores (nombre) VALUES (?)
+        ''', (nombre,))
+
+        conexion.commit()
+        conexion.close()
+
+    def actualizar_estadisticas(self, nombre, partidas_jugadas, partidas_ganadas):
+        conexion = sqlite3.connect('dama_game.db')
+        cursor = conexion.cursor()
+
+        cursor.execute('''
+            UPDATE jugadores
+            SET partidas_jugadas = partidas_jugadas + ?,
+                partidas_ganadas = partidas_ganadas + ?
+            WHERE nombre = ?
+        ''', (partidas_jugadas, partidas_ganadas, nombre))
+
+        conexion.commit()
+        conexion.close()
