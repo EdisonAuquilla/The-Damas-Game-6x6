@@ -128,16 +128,21 @@ class Tablero(tk.Tk):
             row_captura = (current_row + new_row) // 2
             col_captura = (current_col + new_col) // 2
             ficha_capturada = next((ficha for ficha in self.fichas if ficha[2] == row_captura and ficha[3] == col_captura), None)
-            if ficha_capturada:
-                self.tablero.delete(ficha_capturada[0])
-                self.fichas.remove(ficha_capturada)
-                # Incrementar jugadas hechas
-                if color == "negro":
-                    self.jugadas_hechas_negro += 1
-                else:
-                    self.jugadas_hechas_blanco += 1
-                actualizar_estadisticas(self.nombre_jugador_negro, self.jugadas_hechas_negro, self.partidas_ganadas_negro)
-                actualizar_estadisticas(self.nombre_jugador_blanco, self.jugadas_hechas_blanco, self.partidas_ganadas_blanco)
+        if ficha_capturada:
+            self.tablero.delete(ficha_capturada[0])
+            self.fichas.remove(ficha_capturada)
+            # Incrementar fichas eliminadas
+            if color == "negro":
+                self.jugadas_hechas_negro += 1
+                self.jugadas_hechas_blanco += 0  # No necesario, pero para la claridad
+            else:
+                self.jugadas_hechas_blanco += 1
+                self.jugadas_hechas_negro += 0  # No necesario, pero para la claridad
+
+            # Actualizar estadísticas de jugadores
+            actualizar_estadisticas(self.nombre_jugador_negro, self.jugadas_hechas_negro, self.partidas_ganadas_negro, self.jugadas_hechas_negro)
+            actualizar_estadisticas(self.nombre_jugador_blanco, self.jugadas_hechas_blanco, self.partidas_ganadas_blanco, self.jugadas_hechas_blanco)
+
 
     def verificar_fin_del_juego(self):
         fichas_negro = [ficha for ficha in self.fichas if ficha[1] == "negro"]
