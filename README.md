@@ -5,7 +5,9 @@ MEMBERS:
 -Edison Auquilla
 - Jaren Tuarez
 Checkers game in Python 🎮
+
 ![image](https://github.com/user-attachments/assets/072ae9b1-b511-4b01-9101-45ac84e92649)
+
 DESCRIPCTION 📜:
 Welcome to Checkers in Python! This project is an implementation of the classic Checkers game using Python and Tkinker. Below you will find all the information about the project.
 
@@ -83,8 +85,11 @@ Dmas Game: includes a database (Sulite3), where certain information about the ga
 Educational user interface: designed with tkinter for an easy-to-use and visually striking experience.
 Players will have a space where they can see whose turn it is and the player's score is tracked.
 Game 🎮
+
 ![image](https://github.com/user-attachments/assets/0c026ade-3af7-489f-84e8-637515f67c5d)
+
 ![image](https://github.com/user-attachments/assets/44f34394-f616-466c-b288-bb23786346a1)
+
 
 Game controls
 The game is controlled only with the mouse.
