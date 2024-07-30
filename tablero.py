@@ -1,5 +1,6 @@
 import tkinter as tk
-from jugadores import actualizar_estadisticas, obtener_estadisticas
+from tkinter import messagebox
+from jugadores import actualizar_estadisticas
 from scoreboard import Scoreboard
 
 class Tablero(tk.Tk):
@@ -25,9 +26,15 @@ class Tablero(tk.Tk):
         self.nombre_jugador_negro = "Jugador Negro"
         self.nombre_jugador_blanco = "Jugador Blanco"
 
-        # Configurar el panel de puntajes
+        # Inicializar el puntaje
         self.scoreboard = Scoreboard(self, self.nombre_jugador_negro, self.nombre_jugador_blanco)
         self.scoreboard.pack(side="right", fill="y", padx=10, pady=10)  # Acomodar el Scoreboard a la derecha
+
+        # Inicializar estadísticas de la partida
+        self.partidas_ganadas_negro = 0
+        self.partidas_ganadas_blanco = 0
+        self.jugadas_hechas_negro = 0
+        self.jugadas_hechas_blanco = 0
 
     def dibujar_cuadricula(self):
         for i in range(6):
@@ -85,6 +92,8 @@ class Tablero(tk.Tk):
                 # Cambiar turno
                 self.cambiar_turno()
                 self.scoreboard.actualizar()  # Actualizar el panel de puntajes
+                # Verificar si el juego ha terminado
+                self.verificar_fin_del_juego()
 
     def cambiar_turno(self):
         # Cambiar turno entre "negro" y "blanco"
@@ -122,9 +131,33 @@ class Tablero(tk.Tk):
             if ficha_capturada:
                 self.tablero.delete(ficha_capturada[0])
                 self.fichas.remove(ficha_capturada)
+                # Incrementar jugadas hechas
                 if color == "negro":
-                    self.partidas_ganadas_negro += 1
+                    self.jugadas_hechas_negro += 1
                 else:
-                    self.partidas_ganadas_blanco += 1
-                actualizar_estadisticas(self.nombre_jugador_negro, self.partidas_jugadas_negro, self.partidas_ganadas_negro)
-                actualizar_estadisticas(self.nombre_jugador_blanco, self.partidas_jugadas_blanco, self.partidas_ganadas_blanco)
+                    self.jugadas_hechas_blanco += 1
+                actualizar_estadisticas(self.nombre_jugador_negro, self.jugadas_hechas_negro, self.partidas_ganadas_negro)
+                actualizar_estadisticas(self.nombre_jugador_blanco, self.jugadas_hechas_blanco, self.partidas_ganadas_blanco)
+
+    def verificar_fin_del_juego(self):
+        fichas_negro = [ficha for ficha in self.fichas if ficha[1] == "negro"]
+        fichas_blanco = [ficha for ficha in self.fichas if ficha[1] == "blanco"]
+        
+        if not fichas_negro or not fichas_blanco:
+            ganador = "blanco" if fichas_negro == [] else "negro"
+            if ganador == "negro":
+                self.partidas_ganadas_negro += 1
+            else:
+                self.partidas_ganadas_blanco += 1
+            messagebox.showinfo("Fin del Juego", f"El ganador es el jugador {ganador.capitalize()}!")
+            self.scoreboard.actualizar()
+ # Actualizar el panel de puntajes
+            self.resetear_juego()
+
+    def resetear_juego(self):
+        self.tablero.delete("all")
+        self.dibujar_cuadricula()
+        self.agregar_fichas()
+        self.jugadas_hechas_negro = 0
+        self.jugadas_hechas_blanco = 0
+        self.turno = "negro"
