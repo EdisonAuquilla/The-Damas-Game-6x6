@@ -1,5 +1,3 @@
-import tkinter as tk
-
 class Piece:
     def __init__(self, canvas, x, y, color):
         self.canvas = canvas

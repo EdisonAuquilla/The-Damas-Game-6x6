@@ -1,6 +1,6 @@
 import tkinter as tk
-import sqlite3
-from pieces import Piece
+from scoreboard import Scoreboard
+
 
 class Tablero(tk.Tk):
     def __init__(self, *args, **kwargs):
@@ -15,6 +15,12 @@ class Tablero(tk.Tk):
         self.turno = "negro"  # Comienza el jugador "negro"
         self.tablero.bind("<Button-1>", self.on_click)
 
+        # Agregar nombre de los jugadores
+        self.nombre_jugador_negro = "Jugador Negro"
+        self.nombre_jugador_blanco = "Jugador Blanco"
+
+        # Configurar el panel de puntajes
+        
     def dibujar_cuadricula(self):
         for i in range(6):
             for j in range(6):
@@ -107,28 +113,24 @@ class Tablero(tk.Tk):
                 self.tablero.delete(ficha[0])
                 self.fichas.remove(ficha)
                 break  # Solo se puede capturar una ficha a la vez en un turno
-            
-    def registrar_jugador(self, nombre):
+
+    def actualizar_score(self, ganador):
+        """Actualizar el puntaje del ganador en la base de datos y en la interfaz de usuario."""
         conexion = sqlite3.connect('dama_game.db')
         cursor = conexion.cursor()
 
-        cursor.execute('''
-            INSERT INTO jugadores (nombre) VALUES (?)
-        ''', (nombre,))
+        cursor.execute('SELECT partidas_jugadas, partidas_ganadas FROM jugadores WHERE nombre = ?', (self.nombre_jugador_negro if ganador == "negro" else self.nombre_jugador_blanco,))
+        result = cursor.fetchone()
+        if result:
+            partidas_jugadas, partidas_ganadas = result
+            partidas_jugadas += 1
+            partidas_ganadas += 1 if ganador == ("negro" if self.nombre_jugador_negro == ganador else "blanco") else 0
 
-        conexion.commit()
+            cursor.execute('UPDATE jugadores SET partidas_jugadas = ?, partidas_ganadas = ? WHERE nombre = ?',
+                           (partidas_jugadas, partidas_ganadas, self.nombre_jugador_negro if ganador == "negro" else self.nombre_jugador_blanco))
+
+            conexion.commit()
         conexion.close()
 
-    def actualizar_estadisticas(self, nombre, partidas_jugadas, partidas_ganadas):
-        conexion = sqlite3.connect('dama_game.db')
-        cursor = conexion.cursor()
-
-        cursor.execute('''
-            UPDATE jugadores
-            SET partidas_jugadas = partidas_jugadas + ?,
-                partidas_ganadas = partidas_ganadas + ?
-            WHERE nombre = ?
-        ''', (partidas_jugadas, partidas_ganadas, nombre))
-
-        conexion.commit()
-        conexion.close()
+        self.scoreboard.actualizar_scores(self.nombre_jugador_negro, partidas_jugadas, partidas_ganadas)
+        self.scoreboard.actualizar_scores(self.nombre_jugador_blanco, partidas_jugadas, partidas_ganadas)

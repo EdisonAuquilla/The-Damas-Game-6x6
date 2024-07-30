@@ -1,21 +1,17 @@
 import sqlite3
 
-def crear_base_datos():
-    conexion = sqlite3.connect('dama_game.db')
-    cursor = conexion.cursor()
-
-    # Crear tabla de jugadores
+def crear_base_de_datos():
+    conn = sqlite3.connect('jugadores.db')
+    cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS jugadores (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            partidas_jugadas INTEGER DEFAULT 0,
-            partidas_ganadas INTEGER DEFAULT 0
+            nombre TEXT PRIMARY KEY,
+            partidas_jugadas INTEGER,
+            partidas_ganadas INTEGER
         )
     ''')
-
-    conexion.commit()
-    conexion.close()
+    conn.commit()
+    conn.close()
 
 if __name__ == "__main__":
-    crear_base_datos()
+    crear_base_de_datos()
