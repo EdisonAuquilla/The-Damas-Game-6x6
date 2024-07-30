@@ -1,16 +1,22 @@
 import tkinter as tk
+from jugadores import actualizar_estadisticas, obtener_estadisticas
 from scoreboard import Scoreboard
-
 
 class Tablero(tk.Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.geometry("600x600")
+        self.geometry("1200x600")  # Ampliar la ventana para acomodar el Scoreboard a la derecha
         self.title("Damas Game")
-        self.tablero = tk.Canvas(self, width=600, height=600)
-        self.tablero.pack(fill="both", expand=1)
+        
+        self.frame_principal = tk.Frame(self)
+        self.frame_principal.pack(side="left", fill="both", expand=True)
+        
+        self.tablero = tk.Canvas(self.frame_principal, width=600, height=600)
+        self.tablero.pack(fill="both", expand=True)
+        
         self.dibujar_cuadricula()
         self.agregar_fichas()
+        
         self.ficha_seleccionada = None
         self.turno = "negro"  # Comienza el jugador "negro"
         self.tablero.bind("<Button-1>", self.on_click)
@@ -20,7 +26,9 @@ class Tablero(tk.Tk):
         self.nombre_jugador_blanco = "Jugador Blanco"
 
         # Configurar el panel de puntajes
-        
+        self.scoreboard = Scoreboard(self, self.nombre_jugador_negro, self.nombre_jugador_blanco)
+        self.scoreboard.pack(side="right", fill="y", padx=10, pady=10)  # Acomodar el Scoreboard a la derecha
+
     def dibujar_cuadricula(self):
         for i in range(6):
             for j in range(6):
@@ -76,6 +84,7 @@ class Tablero(tk.Tk):
                 self.realizar_captura(current_row, current_col, row, col, color)
                 # Cambiar turno
                 self.cambiar_turno()
+                self.scoreboard.actualizar()  # Actualizar el panel de puntajes
 
     def cambiar_turno(self):
         # Cambiar turno entre "negro" y "blanco"
@@ -97,40 +106,25 @@ class Tablero(tk.Tk):
         return False
 
     def casilla_libre(self, row, col):
+        # Comprobar si la casilla está libre
         return not any(ficha for ficha in self.fichas if ficha[2] == row and ficha[3] == col)
 
     def casilla_ocupada_por_enemigo(self, row, col, color):
-        return any(ficha for ficha in self.fichas if ficha[2] == row and ficha[3] == col and ficha[1] != color)
+        # Comprobar si la casilla está ocupada por una ficha enemiga
+        enemigo = "blanco" if color == "negro" else "negro"
+        return any(ficha for ficha in self.fichas if ficha[2] == row and ficha[3] == col and ficha[1] == enemigo)
 
     def realizar_captura(self, current_row, current_col, new_row, new_col, color):
-        # Implementar lógica de captura
-        enemy_row = (current_row + new_row) // 2
-        enemy_col = (current_col + new_col) // 2
-        for ficha in self.fichas:
-            _, enemy_color, row, col = ficha
-            if (row, col) == (enemy_row, enemy_col) and enemy_color != color:
-                # Realizar captura
-                self.tablero.delete(ficha[0])
-                self.fichas.remove(ficha)
-                break  # Solo se puede capturar una ficha a la vez en un turno
-
-    def actualizar_score(self, ganador):
-        """Actualizar el puntaje del ganador en la base de datos y en la interfaz de usuario."""
-        conexion = sqlite3.connect('dama_game.db')
-        cursor = conexion.cursor()
-
-        cursor.execute('SELECT partidas_jugadas, partidas_ganadas FROM jugadores WHERE nombre = ?', (self.nombre_jugador_negro if ganador == "negro" else self.nombre_jugador_blanco,))
-        result = cursor.fetchone()
-        if result:
-            partidas_jugadas, partidas_ganadas = result
-            partidas_jugadas += 1
-            partidas_ganadas += 1 if ganador == ("negro" if self.nombre_jugador_negro == ganador else "blanco") else 0
-
-            cursor.execute('UPDATE jugadores SET partidas_jugadas = ?, partidas_ganadas = ? WHERE nombre = ?',
-                           (partidas_jugadas, partidas_ganadas, self.nombre_jugador_negro if ganador == "negro" else self.nombre_jugador_blanco))
-
-            conexion.commit()
-        conexion.close()
-
-        self.scoreboard.actualizar_scores(self.nombre_jugador_negro, partidas_jugadas, partidas_ganadas)
-        self.scoreboard.actualizar_scores(self.nombre_jugador_blanco, partidas_jugadas, partidas_ganadas)
+        if abs(new_row - current_row) == 2:
+            row_captura = (current_row + new_row) // 2
+            col_captura = (current_col + new_col) // 2
+            ficha_capturada = next((ficha for ficha in self.fichas if ficha[2] == row_captura and ficha[3] == col_captura), None)
+            if ficha_capturada:
+                self.tablero.delete(ficha_capturada[0])
+                self.fichas.remove(ficha_capturada)
+                if color == "negro":
+                    self.partidas_ganadas_negro += 1
+                else:
+                    self.partidas_ganadas_blanco += 1
+                actualizar_estadisticas(self.nombre_jugador_negro, self.partidas_jugadas_negro, self.partidas_ganadas_negro)
+                actualizar_estadisticas(self.nombre_jugador_blanco, self.partidas_jugadas_blanco, self.partidas_ganadas_blanco)
